@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>Writing simple CV scanner using Rust | 一亩三分地</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Simple tool to search key words in the PDF file, this could be mainly used for CV scanning: Note: Once you done with this, may you like to have a look for the equivalent one in Julia lang here ###Requ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Writing simple CV scanner using Rust">
+<meta property="og:url" content="http://yoursite.com/2019/10/15/rust-cv/index.html">
+<meta property="og:site_name" content="一亩三分地">
+<meta property="og:description" content="Simple tool to search key words in the PDF file, this could be mainly used for CV scanning: Note: Once you done with this, may you like to have a look for the equivalent one in Julia lang here ###Requ">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-10-14T16:38:27.340Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Writing simple CV scanner using Rust">
+<meta name="twitter:description" content="Simple tool to search key words in the PDF file, this could be mainly used for CV scanning: Note: Once you done with this, may you like to have a look for the equivalent one in Julia lang here ###Requ">
+  
+    <link rel="alternate" href="/atom.xml" title="一亩三分地" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">一亩三分地</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-rust-cv" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/10/15/rust-cv/" class="article-date">
+  <time datetime="2019-10-14T16:38:27.340Z" itemprop="datePublished">2019-10-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Writing simple CV scanner using Rust
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Simple tool to search key words in the PDF file, this could be mainly used for CV scanning:</p>
+<p>Note: Once you done with this, may you like to have a look for the equivalent one in Julia lang here</p>
+<p>###Required crates:<br>config = “0.9” =&gt; To read “key-words” from toml file<br>regex = “1.3.1” =&gt; For words match checking<br>pdf = “0.7” =&gt; For reading the PDF file, the crate still not updated, so use { git = “github.com/pdf-rs/pdf”}<br>###Application Structure</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">├── cv_file.PDF</span><br><span class="line">├── Cargo.toml</span><br><span class="line">├── Settings.toml</span><br><span class="line">├── src</span><br><span class="line">      ├── main.rs</span><br><span class="line">      └── read_file.rs</span><br></pre></td></tr></table></figure>
+
+<p>###Code</p>
+<ol>
+<li>“Cargo.toml”</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[package]</span><br><span class="line">name = &quot;search-words&quot;</span><br><span class="line">version = &quot;0.1.0&quot;</span><br><span class="line">authors = [&quot;Hasan Yousef&quot;]</span><br><span class="line">edition = &quot;2018&quot;</span><br><span class="line"></span><br><span class="line">[dependencies]</span><br><span class="line">regex = &quot;1.3.1&quot;</span><br><span class="line">pdf = &#123; git = &quot;https://github.com/pdf-rs/pdf&quot;&#125;</span><br><span class="line">utf16-ext = &quot;0.1.0&quot;</span><br><span class="line">byteorder = &quot;1.2&quot;</span><br><span class="line">config = &quot;0.9&quot;</span><br></pre></td></tr></table></figure>
+
+<p>1.”read_file.rs”</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br></pre></td><td class="code"><pre><span class="line">use std::env::args;</span><br><span class="line">use std::collections::HashMap;</span><br><span class="line">use std::convert::TryInto;</span><br><span class="line"></span><br><span class="line">use pdf::file::File;</span><br><span class="line">use pdf::content::*;</span><br><span class="line">use pdf::primitive::Primitive;</span><br><span class="line">use pdf::font::*;</span><br><span class="line">use pdf::parser::Lexer;</span><br><span class="line">use pdf::parser::parse_with_lexer;</span><br><span class="line">use pdf::object::NoResolve;</span><br><span class="line">use pdf::encoding::BaseEncoding;</span><br><span class="line"></span><br><span class="line">use byteorder::BE;</span><br><span class="line">use utf16_ext::Utf16ReadExt;</span><br><span class="line"></span><br><span class="line">fn utf16be_to_string(mut data: &amp;[u8]) -&gt; String &#123;</span><br><span class="line">    (&amp;mut data).utf16_chars::&lt;BE&gt;().map(|c| c.unwrap()).collect()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// totally not a steaming pile of hacks</span><br><span class="line">fn parse_cmap(data: &amp;[u8]) -&gt; HashMap&lt;u16, String&gt; &#123;</span><br><span class="line">   // println!(&quot;&#123;&#125;&quot;, std::str::from_utf8(data).unwrap());</span><br><span class="line">    let mut lexer = Lexer::new(data);</span><br><span class="line">    let mut map = HashMap::new();</span><br><span class="line">    while let Ok(substr) = lexer.next() &#123;</span><br><span class="line">        match substr.as_slice() &#123;</span><br><span class="line">            b&quot;beginbfchar&quot; =&gt; loop &#123;</span><br><span class="line">                let a = parse_with_lexer(&amp;mut lexer, &amp;NoResolve);</span><br><span class="line">                let b = parse_with_lexer(&amp;mut lexer, &amp;NoResolve);</span><br><span class="line">                match (a, b) &#123;</span><br><span class="line">                    (Ok(Primitive::String(cid_data)), Ok(Primitive::String(unicode_data))) =&gt; &#123;</span><br><span class="line">                        let cid = u16::from_be_bytes(cid_data.as_bytes().try_into().unwrap());</span><br><span class="line">                        let unicode = utf16be_to_string(unicode_data.as_bytes());</span><br><span class="line">                        map.insert(cid, unicode);</span><br><span class="line">                    &#125;</span><br><span class="line">                    _ =&gt; break</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            b&quot;beginbfrange&quot; =&gt; loop &#123;</span><br><span class="line">                let a = parse_with_lexer(&amp;mut lexer, &amp;NoResolve);</span><br><span class="line">                let b = parse_with_lexer(&amp;mut lexer, &amp;NoResolve);</span><br><span class="line">                let c = parse_with_lexer(&amp;mut lexer, &amp;NoResolve);</span><br><span class="line">                match (a, b, c) &#123;</span><br><span class="line">                    (Ok(Primitive::String(cid_start_data)), Ok(Primitive::String(cid_end_data)), Ok(Primitive::String(unicode_data))) =&gt; &#123;</span><br><span class="line">                        let cid_start = u16::from_be_bytes(cid_start_data.as_bytes().try_into().unwrap());</span><br><span class="line">                        let cid_end = u16::from_be_bytes(cid_end_data.as_bytes().try_into().unwrap());</span><br><span class="line">                        let mut unicode_data = unicode_data.into_bytes();</span><br><span class="line"></span><br><span class="line">                        for cid in cid_start ..= cid_end  &#123;</span><br><span class="line">                            let unicode = utf16be_to_string(&amp;unicode_data);</span><br><span class="line">                            map.insert(cid, unicode);</span><br><span class="line">                            *unicode_data.last_mut().unwrap() += 1;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    (Ok(Primitive::String(cid_start_data)), Ok(Primitive::String(cid_end_data)), Ok(Primitive::Array(unicode_data_arr))) =&gt; &#123;</span><br><span class="line">                        let cid_start = u16::from_be_bytes(cid_start_data.as_bytes().try_into().unwrap());</span><br><span class="line">                        let cid_end = u16::from_be_bytes(cid_end_data.as_bytes().try_into().unwrap());</span><br><span class="line"></span><br><span class="line">                        for (cid, unicode_data) in (cid_start ..= cid_end).zip(unicode_data_arr) &#123;</span><br><span class="line">                            let unicode = utf16be_to_string(&amp;unicode_data.as_string().unwrap().as_bytes());</span><br><span class="line">                            map.insert(cid, unicode);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    _ =&gt; break</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            b&quot;endcmap&quot; =&gt; break,</span><br><span class="line">            _ =&gt; &#123;&#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    map</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">struct FontInfo&lt;&apos;a&gt; &#123;</span><br><span class="line">    font: &amp;&apos;a Font,</span><br><span class="line">    cmap: HashMap&lt;u16, String&gt;</span><br><span class="line">&#125;</span><br><span class="line">struct Cache&lt;&apos;a&gt; &#123;</span><br><span class="line">    fonts: HashMap&lt;&amp;&apos;a str, FontInfo&lt;&apos;a&gt;&gt;</span><br><span class="line">&#125;</span><br><span class="line">impl&lt;&apos;a&gt; Cache &lt;&apos;a&gt; &#123;</span><br><span class="line">    fn new() -&gt; Self &#123;</span><br><span class="line">        Cache &#123;</span><br><span class="line">            fonts: HashMap::new()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fn add_font(&amp;mut self, name: &amp;&apos;a str, font: &amp;&apos;a Font) &#123;</span><br><span class="line">      //  dbg!(font);</span><br><span class="line">        if let Some(to_unicode) = font.to_unicode() &#123;</span><br><span class="line">            let cmap = parse_cmap(to_unicode.data().unwrap());</span><br><span class="line">            self.fonts.insert(name, FontInfo &#123; font, cmap &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fn get_font&lt;&apos;b&gt;(&amp;self, name: &amp;&apos;b str) -&gt; Option&lt;&amp;FontInfo&lt;&apos;a&gt;&gt; &#123;</span><br><span class="line">        self.fonts.get(&amp;*name)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">fn add_primitive(p: &amp;Primitive, out: &amp;mut String, info: &amp;FontInfo) &#123;</span><br><span class="line">    // println!(&quot;p: &#123;:?&#125;&quot;, p);</span><br><span class="line">    match p &#123;</span><br><span class="line">        &amp;Primitive::String(ref data) =&gt; &#123;</span><br><span class="line">            match info.font.encoding().base &#123;</span><br><span class="line">                BaseEncoding::IdentityH =&gt; &#123;</span><br><span class="line">                    for w in data.as_bytes().windows(2) &#123;</span><br><span class="line">                        let cp = u16::from_be_bytes(w.try_into().unwrap());</span><br><span class="line">                        if let Some(s) = info.cmap.get(&amp;cp) &#123;</span><br><span class="line">                            out.push_str(s);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                _ =&gt; &#123;</span><br><span class="line">                    for &amp;b in data.as_bytes() &#123;</span><br><span class="line">                        if let Some(s) = info.cmap.get(&amp;(b as u16)) &#123;</span><br><span class="line">                            out.push_str(s);</span><br><span class="line">                        &#125; else &#123;</span><br><span class="line">                            out.push(b as char);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;;</span><br><span class="line">        &#125;</span><br><span class="line">        &amp;Primitive::Array(ref a) =&gt; for p in a.iter() &#123;</span><br><span class="line">            add_primitive(p, out, info);</span><br><span class="line">        &#125;</span><br><span class="line">        _ =&gt; ()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pub fn read_path(path: String) -&gt; Result&lt;String, Box&lt;dyn std::error::Error&gt;&gt; &#123;</span><br><span class="line">    let file = File::&lt;Vec&lt;u8&gt;&gt;::open(&amp;path).unwrap();</span><br><span class="line">//    println!(&quot;reading: &#123;:?&#125; pages of: &#123;&#125;&quot;, file.num_pages(), path);</span><br><span class="line">     let mut out = String::new();</span><br><span class="line">    for page in file.pages() &#123;</span><br><span class="line">        let resources = page.as_ref().unwrap().resources(&amp;file).unwrap();</span><br><span class="line">        let mut cache = Cache::new();</span><br><span class="line"></span><br><span class="line">        // make sure all fonts are in the cache, so we can reference them</span><br><span class="line">        for (name, font) in &amp;resources.fonts &#123;</span><br><span class="line">            cache.add_font(name, font);</span><br><span class="line">        &#125;</span><br><span class="line">        for gs in resources.graphics_states.values() &#123;</span><br><span class="line">            if let Some((ref font, _)) = gs.font &#123;</span><br><span class="line">                cache.add_font(font.name.as_str(), font);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        let mut current_font = None;</span><br><span class="line">        for Operation &#123; ref operator, ref operands &#125; in &amp;page.unwrap().contents.as_ref().unwrap().operations &#123;</span><br><span class="line">//             println!(&quot;&#123;&#125; &#123;:?&#125;&quot;, operator, operands);</span><br><span class="line">            match operator.as_str() &#123;</span><br><span class="line">                &quot;gs&quot; =&gt; &#123;</span><br><span class="line">                    let gs = resources.graphics_states.get(operands[0].as_name().unwrap()).unwrap();</span><br><span class="line"></span><br><span class="line">                    if let Some((ref font, _)) = gs.font &#123;</span><br><span class="line">                        current_font = cache.get_font(&amp;font.name);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                // text font</span><br><span class="line">                &quot;Tf&quot; =&gt; &#123;</span><br><span class="line">                    let font_name = operands[0].as_name().expect(&quot;font name is not a string&quot;);</span><br><span class="line">//                    dbg!(font_name);</span><br><span class="line">                    current_font = cache.get_font(font_name);</span><br><span class="line">                &#125;</span><br><span class="line">                &quot;Tj&quot; | &quot;TJ&quot; | &quot;BT&quot; =&gt; &#123;</span><br><span class="line">                    if let Some(font) = current_font &#123;</span><br><span class="line">                        operands.iter().for_each(|p| add_primitive(p, &amp;mut out, font));</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                &quot;Td&quot; | &quot;TD&quot; | &quot;T*&quot; =&gt; &#123;</span><br><span class="line">                    out.push(&apos;\n&apos;);</span><br><span class="line">                &#125;</span><br><span class="line">                _ =&gt; &#123;&#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    match out.len() &#123;</span><br><span class="line">        x if x == 0 =&gt; Err(format!(&quot;Could&apos;t read the file properly&quot;))?,</span><br><span class="line">        x if x &gt; 0  =&gt; Ok(out),</span><br><span class="line">        _           =&gt; Err(format!(&quot;The file looks to be corrupted&quot;))?,</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>1.main.rs</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">mod read_file;</span><br><span class="line">use crate::read_file::read_path;</span><br><span class="line">use regex::RegexSet;</span><br><span class="line">use std::collections::HashMap;</span><br><span class="line">use std::env::args;</span><br><span class="line"></span><br><span class="line">fn main() &#123;</span><br><span class="line">    let mut required_skills: Vec&lt;String&gt; = vec![String::new()];</span><br><span class="line">    let mut settings = config::Config::default();</span><br><span class="line">    match  settings.merge(config::File::with_name(&quot;Settings&quot;)) &#123;</span><br><span class="line">        Err(_) =&gt; println!(&quot;Ooops, Couldn&apos;t fine \&quot;Settings.toml\&quot; file, or it is wrongly formatted \n&quot;),</span><br><span class="line">        Ok(_)  =&gt; &#123;</span><br><span class="line">            match settings.get(&amp;&quot;key-words&quot;) &#123;</span><br><span class="line">                Err(e) =&gt; println!(&quot;Invalid settings.toml file, could not find \&quot;key-words\&quot; \</span><br><span class="line">                or it is wrongly formatted&quot;),</span><br><span class="line">                Ok(kw) =&gt; &#123;</span><br><span class="line">                    required_skills = kw;</span><br><span class="line">                    let searches =required_skills.iter().</span><br><span class="line">                        map(|s| format!(&quot;(?i)&#123;&#125;(?-i)&quot;, s)).</span><br><span class="line">                        collect::&lt;Vec&lt;String&gt;&gt;();</span><br><span class="line"></span><br><span class="line">                    let set = RegexSet::new(&amp;searches).unwrap();</span><br><span class="line"></span><br><span class="line">                    let mut regex_map: HashMap&lt;&amp;String, &amp;String&gt; = HashMap::new();</span><br><span class="line"></span><br><span class="line">                    for (index, skill) in required_skills.iter().enumerate() &#123;</span><br><span class="line">                        regex_map.insert(skill, &amp;searches[index]);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    match args().nth(1) &#123;</span><br><span class="line">                        None =&gt; println!(&quot;Ooops, you did not enter a file name to read \nExample: \</span><br><span class="line">                        \n              ./search-words \&quot;my pdf file.pdf\&quot; \n&quot;),</span><br><span class="line">                        Some(path) =&gt; &#123;</span><br><span class="line">                            match read_path(path) &#123;</span><br><span class="line">                                Err(e) =&gt; println!(&quot;Error occured: &#123;&#125;&quot;, e),</span><br><span class="line">                                Ok(isi)       =&gt; &#123;</span><br><span class="line">                                    if set.is_match(&amp;isi)&#123;</span><br><span class="line">                                        let matches = set.matches(&amp;isi).into_iter().collect::&lt;Vec&lt;_&gt;&gt;();</span><br><span class="line">                                        let exact_matches = matches.iter().</span><br><span class="line">                                                                    map(|s| searches[*s].as_str()).collect::&lt;Vec&lt;&amp;str&gt;&gt;();</span><br><span class="line">                                        println!(&quot;Out of &#123;&#125; requirements, the below &#123;&#125; matches had been found:&quot;,</span><br><span class="line">                                                set.len(), matches.len());</span><br><span class="line">                                        for x in exact_matches &#123;</span><br><span class="line">                                            for (key, value) in &amp;regex_map &#123;</span><br><span class="line">                                                if x == *value &#123;println!(&quot;&#123;&#125;&quot;, *key );&#125;</span><br><span class="line">                                            &#125;</span><br><span class="line">                                        &#125;</span><br><span class="line">                                    &#125; else &#123;</span><br><span class="line">                                            println!(&quot;No matches found&quot;);</span><br><span class="line">                                    &#125;</span><br><span class="line">                                &#125;,</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;,</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>1.”Settings.toml”</p>
+<p>Anything like:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">key-words = [</span><br><span class="line">   &quot;Supply Chain&quot;, &quot;planning&quot;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>Running/Execution</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ ./search-words</span><br><span class="line">Ooops, you did not enter a file name to read </span><br><span class="line">Example: </span><br><span class="line">              ./search-words &quot;my pdf file.pdf&quot; </span><br><span class="line"></span><br><span class="line">$ ./search-words &quot;cv_file.pdf&quot;</span><br><span class="line">Out of 2 requirements, the below  matches had been found:</span><br><span class="line">Supply Chain</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/10/15/rust-cv/" data-id="ck1r9tth00002vvs6yle2b5xp" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/10/15/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/10/">October 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/10/15/rust-cv/">Writing simple CV scanner using Rust</a>
+          </li>
+        
+          <li>
+            <a href="/2019/10/15/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 v-code<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
