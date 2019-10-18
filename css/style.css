@@ -1973,6 +1973,7 @@ a.toc-link {
   -webkit-border-radius: 0.4rem;
   -moz-border-radius: 0.4rem;
   border-radius: 0.4rem;
+  overflow: hidden;
   color: #4d4d4c;
 }
 .article-entry .highlight .gutter pre,
